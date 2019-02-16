@@ -1,27 +1,64 @@
 import React from 'react';
-import { ScrollView, StyleSheet } from 'react-native';
-import { ExpoLinksView } from '@expo/samples';
+import { FlatList, CheckBox } from 'react-native';
+import { WebBrowser } from 'expo';
+import {
+  Container,
+  Header,
+  Content,
+  List,
+  ListItem,
+  Text,
+  Body,
+  Title
+} from 'native-base';
+
+var DomParser = require('react-native-html-parser').DOMParser;
 
 export default class LinksScreen extends React.Component {
+  state = {
+    data: []
+  }
   static navigationOptions = {
-    title: 'Links',
+    header: null
   };
+
+  componentDidMount = () => {
+    fetch('https://cattlerange.com/cattle-auction-reports-results/kentucky-auctions/', {method: 'GET'})
+      .then((response) => response.text())
+      .then((html) => {
+        const parser = new DomParser()
+        const doc = parser.parseFromString(html, 'text/html')
+
+        const kyLivestockLinks = Array
+          .from(doc.getElementsByTagName('a'))
+          .filter(element => element.getAttribute('rel') !== '')
+          .map((el,i) => {
+            return (<ListItem key={i}>
+              <CheckBox/>
+              <Body>
+                <Text>{el.textContent}</Text>
+              </Body>
+            </ListItem>)
+          });
+        this.setState({data: kyLivestockLinks});
+      })
+      .catch((error) => {
+        console.error(error)
+      })
+  }
 
   render() {
     return (
-      <ScrollView style={styles.container}>
-        {/* Go ahead and delete ExpoLinksView and replace it with your
-           * content, we just wanted to provide you with some helpful links */}
-        <ExpoLinksView />
-      </ScrollView>
+      <Container>
+      <Header>
+        <Body>
+          <Title>KY Stockyards</Title>
+        </Body>
+      </Header>
+        <Content>
+          {this.state.data}
+        </Content>
+      </Container>
     );
   }
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingTop: 15,
-    backgroundColor: '#fff',
-  },
-});
