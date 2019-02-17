@@ -11,7 +11,9 @@ import {
   Body,
   Title,
   Subtitle,
-  Separator
+  Separator,
+  Footer,
+  Left, Right
 } from 'native-base';
 import PubSub from 'pubsub-js'
 
@@ -52,14 +54,12 @@ export default class HomeScreen extends React.Component {
   getTableHeaders(lines) {
     let content = [];
     let firstTableRow = lines.findIndex((value) => value.includes('Wt Range')) - 1
-    console.log(firstTableRow)
 
     let tableContent = lines.slice(firstTableRow)
     for(i in tableContent) {
       let line = tableContent[i]
       if(line.includes('Wt Range')) {
         let tableTitle = tableContent[i-1].trim()
-        console.log("TITLE", tableTitle)
         content.push(
             <Separator>
               <Text>{tableTitle}</Text>
@@ -68,7 +68,6 @@ export default class HomeScreen extends React.Component {
 
       let parsedLine = line.trim().match(/\S+/g) || []
       if(parsedLine.length == 5 && !line.includes('Report')) {
-        console.log(line)
         content.push(
           <ListItem>
             <Text>{line}</Text>
@@ -89,12 +88,18 @@ export default class HomeScreen extends React.Component {
         <Header>
           <Body>
             <Title>{title}</Title>
-            <Subtitle>{subtitle}</Subtitle>
           </Body>
         </Header>
         <Content padder>
           {content}
         </Content>
+        <Footer>
+            <Body>
+              <Left/>
+              <Subtitle>{subtitle}</Subtitle>
+              <Right/>
+            </Body>
+        </Footer>
       </Container>
     );
   }
