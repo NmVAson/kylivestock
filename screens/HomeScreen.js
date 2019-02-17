@@ -63,10 +63,8 @@ export default class HomeScreen extends React.Component {
       let line = tableContent[i]
       if(line.includes('Wt Range')) {
         let tableTitle = tableContent[i-1].trim()
-        content.push(
-            <ListItem itemDivider>
-              <Text>{tableTitle}</Text>
-            </ListItem>)
+        content.push(<ListItem itemDivider><Text>{tableTitle}</Text></ListItem>)
+        content.push(<Separator bordered><Text>{line.trim()}</Text></Separator>)
       }
 
       let parsedLine = line.trim().match(/\S+/g) || []
