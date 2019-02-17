@@ -1,10 +1,13 @@
 import React from 'react';
-import { AsyncStorage, CheckBox } from 'react-native';
+import { AsyncStorage, CheckBox, Picker } from 'react-native';
 import { Container, Header, Content, List, ListItem, Text, Separator, Body } from 'native-base';
+import { DOMParser } from 'react-native-html-parser'
 
 
 export default class SettingsScreen extends React.Component {
   state = {
+    data: [{value: '', label: ''}],
+    selectedYard: '',
     settings: [],
     filters: [
       {
@@ -80,12 +83,34 @@ export default class SettingsScreen extends React.Component {
     })
   }
 
+  componentWillMount() {
+    fetch('https://cattlerange.com/cattle-auction-reports-results/kentucky-auctions/', {method: 'GET'})
+      .then((response) => response.text())
+      .then((html) => {
+        const parser = new DOMParser()
+        const doc = parser.parseFromString(html, 'text/html')
+
+        return Array
+          .from(doc.getElementsByTagName('a'))
+          .filter(element => element.getAttribute('rel') !== '')
+          .map((el, i) => {
+            return {
+                label: el.textContent,
+                value: el.getAttribute('href')
+              }
+          });
+      })
+      .then((results) => this.setState({data: results}))
+      .catch((error) => {
+        console.error(error)
+      })
+  }
+
   componentDidMount() {
     let settings = this.state.settings
 
     AsyncStorage.getItem("preferred-stockyard").then((value) => {
-      settings["preferred-stockyard"] = value
-      this.setState({settings: settings});
+      this.setState({selectedYard: value});
     }).done();
 
     AsyncStorage.getItem("weight-filters").then((value) => {
@@ -96,10 +121,14 @@ export default class SettingsScreen extends React.Component {
 
   componentWillUnmount() {
     AsyncStorage.setItem("weight-filters", this.state.filters);
+    AsyncStorage.setItem("preferred-stockyard", this.state.selectedYard);
   }
 
   render() {
     let filters = this.getFilterCheckBoxes()
+    let items = this.state.data.map((s, i) => {
+      return <Picker.Item key={i} value={s.value} label={s.label} />
+    });
 
     return (
       <Container>
@@ -111,11 +140,19 @@ export default class SettingsScreen extends React.Component {
             <Text>Kentucky</Text>
           </ListItem>
           <Separator bordered>
-            <Text>SAVED STOCKYARD</Text>
+            <Text>STOCKYARD</Text>
           </Separator>
-          <ListItem>
-            <Text>{this.state.settings["preferred-stockyard"]}</Text>
-          </ListItem>
+          <Picker
+            mode="dropdown"
+            selectedValue={this.state.selectedYard}
+            onValueChange={(itemValue) => {
+              this.setState({selectedYard: itemValue})
+              PubSub.publish('reportSelected', itemValue)
+              AsyncStorage.setItem("preferred-stockyard", itemValue);
+            }}
+            >
+            {items}
+          </Picker>
           <Separator bordered>
             <Text>WEIGHT FILTERS</Text>
           </Separator>
