@@ -61,19 +61,19 @@ export default class HomeScreen extends React.Component {
     let tableContent = lines.slice(firstTableRow)
     for(i in tableContent) {
       let line = tableContent[i]
+      let parsedLine = line.trim().match(/\S+/g) || []
       if(line.includes('Wt Range')) {
         let tableTitle = tableContent[i-1].trim()
         content.push(<ListItem itemDivider><Text>{tableTitle}</Text></ListItem>)
-        content.push(<Separator bordered><Text>{line.trim()}</Text></Separator>)
+
+        let columns = parsedLine.map((col) => (<Text>{col}</Text>))
+        content.push(<ListItem itemHeader style={{justifyContent: 'space-evenly'}}>{columns}</ListItem>)
       }
 
-      let parsedLine = line.trim().match(/\S+/g) || []
       let lineShouldBeRendered = this.state.filters.length == 0 || new RegExp(this.state.filters.join("|")).test(line)
       if(parsedLine.length == 5 && !line.includes('Report') && lineShouldBeRendered) {
-        content.push(
-          <ListItem>
-            <Text>{line}</Text>
-          </ListItem>)
+        let columns = parsedLine.map((col) => (<Text>{col}</Text>))
+        content.push(<ListItem style={{justifyContent: 'space-evenly'}}>{columns}</ListItem>);
       }
     }
     return content
