@@ -8,7 +8,6 @@ export default class SettingsScreen extends React.Component {
   state = {
     data: [{value: '', label: ''}],
     selectedYard: '',
-    settings: [],
     filters: [
       {
         isChecked: false, 
@@ -52,6 +51,14 @@ export default class SettingsScreen extends React.Component {
     title: 'Settings',
   };
 
+  applyFilter(newFilters) {
+    this.setState({filters: newFilters})
+    AsyncStorage.setItem("weight-filters", newFilters);
+
+    let filteredWeights = newFilters.filter((f) => f.isChecked).map((f) => f.weightRange)
+    PubSub.publish('filterSelected', filteredWeights)
+  }
+
   onPress(weight) {
     let newFilters = this.state.filters
     newFilters.forEach((filter, i) => {
@@ -60,16 +67,10 @@ export default class SettingsScreen extends React.Component {
       }
     })
 
-    this.setState({filters: newFilters})
-
-    let filteredWeights = newFilters.filter((f) => f.isChecked).map((f) => f.weightRange)
-    PubSub.publish('filterSelected', filteredWeights)
+    this.applyFilter(newFilters)
   }
 
-  getFilterCheckBoxes() {
-    let filters = this.state.settings["weight-filters"] || this.state.filters
-
-    return filters.map((filter) => {
+  toCheckBoxItem(filter) {
       return (
         <ListItem onPress={() => this.onPress(filter.weightRange)}>
           <CheckBox 
@@ -80,7 +81,10 @@ export default class SettingsScreen extends React.Component {
           </Body>
         </ListItem>
       )
-    })
+  }
+
+  toPickerItem(s, i) {
+    return <Picker.Item key={i} value={s.value} label={s.label} />
   }
 
   componentWillMount() {
@@ -107,15 +111,14 @@ export default class SettingsScreen extends React.Component {
   }
 
   componentDidMount() {
-    let settings = this.state.settings
-
     AsyncStorage.getItem("preferred-stockyard").then((value) => {
       this.setState({selectedYard: value});
     }).done();
 
     AsyncStorage.getItem("weight-filters").then((value) => {
-      settings["weight-filters"] = value
-      this.setState({settings: settings});
+      if(value) {
+        this.applyFilter(value)
+      }
     }).done();
   }
 
@@ -125,10 +128,8 @@ export default class SettingsScreen extends React.Component {
   }
 
   render() {
-    let filters = this.getFilterCheckBoxes()
-    let items = this.state.data.map((s, i) => {
-      return <Picker.Item key={i} value={s.value} label={s.label} />
-    });
+    let filters = this.state.filters.map(this.toCheckBoxItem.bind(this));
+    let items = this.state.data.map(this.toPickerItem);
 
     return (
       <Container>
