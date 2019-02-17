@@ -1,14 +1,40 @@
 import React from 'react';
-import { ExpoConfigView } from '@expo/samples';
+import { AsyncStorage } from 'react-native';
+import { Container, Header, Content, List, ListItem, Text, Separator } from 'native-base';
+
 
 export default class SettingsScreen extends React.Component {
+  state = {
+    settings: []
+  }
   static navigationOptions = {
-    title: 'app.json',
+    title: 'Settings',
   };
 
+  componentDidMount() {
+    AsyncStorage.getItem("preferred-stockyard").then((value) => {
+      this.setState({settings: {"Preferred Stockyard": value}});
+    }).done();
+  }
+
   render() {
-    /* Go ahead and delete ExpoConfigView and replace it with your
-     * content, we just wanted to give you a quick view of your config */
-    return <ExpoConfigView />;
+    return (
+      <Container>
+        <Content>
+          <Separator bordered>
+            <Text>STATE</Text>
+          </Separator>
+          <ListItem>
+            <Text>Kentucky</Text>
+          </ListItem>
+          <Separator bordered>
+            <Text>SAVED STOCKYARD</Text>
+          </Separator>
+          <ListItem>
+            <Text>{this.state.settings["Preferred Stockyard"]}</Text>
+          </ListItem>
+        </Content>
+      </Container>
+    );
   }
 }

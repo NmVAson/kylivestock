@@ -1,5 +1,5 @@
 import React from 'react';
-import { FlatList, CheckBox } from 'react-native';
+import { AsyncStorage } from 'react-native';
 import { WebBrowser, Font } from 'expo';
 import {
   Container,
@@ -19,11 +19,21 @@ export default class HomeScreen extends React.Component {
     data: []
   }
   static navigationOptions = {
-    header: null
+    title: 'Weekly Livestock Summary'
   };
 
   componentDidMount() {
     PubSub.subscribe('reportSelected', (msg, href) => this.fetchReport(href))
+
+    AsyncStorage
+      .getItem("preferred-stockyard")
+      .then((value) => {
+        if(value) {
+          this.fetchReport(value)
+        } else {
+        }
+      })
+      .done();
   }
 
   fetchReport(href) {
@@ -40,12 +50,7 @@ export default class HomeScreen extends React.Component {
   render() {
     return (
       <Container>
-        <Header>
-          <Body>
-            <Title>Weekly Livestock Summary</Title>
-          </Body>
-        </Header>
-        <Content>
+        <Content padder>
           <Text>{this.state.data}</Text>
         </Content>
       </Container>

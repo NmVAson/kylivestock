@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "LiveStock",
-    "slug": "livestock",
+    "name": "KY Livestock",
+    "slug": "kylivestock",
     "privacy": "public",
     "sdkVersion": "32.0.0",
     "platforms": [

@@ -1,16 +1,14 @@
 import React from 'react';
-import { FlatList, CheckBox } from 'react-native';
+import { AsyncStorage}  from 'react-native';
 import { WebBrowser } from 'expo';
 import {
   Container,
-  Header,
   Content,
   List,
   ListItem,
   Text,
   Body,
   Title,
-  Radio,
   Left,
   Right
 } from 'native-base';
@@ -25,7 +23,7 @@ export default class LinksScreen extends React.Component {
     selectedYard: 0
   }
   static navigationOptions = {
-    header: null
+    title: 'KY Stockyards'
   };
 
   storeData(results) {
@@ -36,6 +34,12 @@ export default class LinksScreen extends React.Component {
       selectedYard: selectedButton,
       data: results
     });
+  }
+
+  componentWillMount() {
+    AsyncStorage.getItem("preferred-stockyard").then((value) => {
+      this.setState({selectedYard: value});
+    }).done();
   }
 
   componentDidMount() {
@@ -62,21 +66,21 @@ export default class LinksScreen extends React.Component {
         console.error(error)
       })
   }
+  
+  componentWillUnmount() {
+    AsyncStorage.setItem("preferred-stockyard", value);
+  }
 
   render() {
     return (
       <Container>
-      <Header>
-        <Body>
-          <Title>KY Stockyards</Title>
-        </Body>
-      </Header>
-        <Content>
+        <Content padder>
           <RadioForm
             radio_props={this.state.data}
             onPress={(value) => {
               this.setState({selectedYard: value})
               PubSub.publish('reportSelected', value)
+              AsyncStorage.setItem("preferred-stockyard", value);
             }}
           />
         </Content>
