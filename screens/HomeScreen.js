@@ -20,7 +20,8 @@ import PubSub from 'pubsub-js'
 var DomParser = require('react-native-html-parser').DOMParser;
 export default class HomeScreen extends React.Component {
   state = {
-    data: ''
+    data: '',
+    filters: []
   }
   static navigationOptions = {
     title: 'Weekly Livestock Summary'
@@ -28,6 +29,7 @@ export default class HomeScreen extends React.Component {
 
   componentDidMount() {
     PubSub.subscribe('reportSelected', (msg, href) => this.fetchReport(href))
+    PubSub.subscribe('filterSelected', (msg, weightsToFilter) => this.setState({filters: weightsToFilter}))
 
     AsyncStorage
       .getItem("preferred-stockyard")
@@ -67,7 +69,8 @@ export default class HomeScreen extends React.Component {
       }
 
       let parsedLine = line.trim().match(/\S+/g) || []
-      if(parsedLine.length == 5 && !line.includes('Report')) {
+      let lineShouldBeRendered = this.state.filters.length == 0 || new RegExp(this.state.filters.join("|")).test(line)
+      if(parsedLine.length == 5 && !line.includes('Report') && lineShouldBeRendered) {
         content.push(
           <ListItem>
             <Text>{line}</Text>
