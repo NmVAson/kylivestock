@@ -15,6 +15,7 @@ import {
   Footer,
   Left, Right
 } from 'native-base';
+import { Table, TableWrapper, Row, Rows, Col, Cols, Cell } from 'react-native-table-component';
 import PubSub from 'pubsub-js'
 
 var DomParser = require('react-native-html-parser').DOMParser;
@@ -63,9 +64,9 @@ export default class HomeScreen extends React.Component {
       if(line.includes('Wt Range')) {
         let tableTitle = tableContent[i-1].trim()
         content.push(
-            <Separator>
+            <ListItem itemDivider>
               <Text>{tableTitle}</Text>
-            </Separator>)
+            </ListItem>)
       }
 
       let parsedLine = line.trim().match(/\S+/g) || []
@@ -80,8 +81,19 @@ export default class HomeScreen extends React.Component {
     return content
   }
 
+  splitByTable() {
+    let tables = this.state.data
+      .replace(/\n\r/g, "\n")
+      .replace(/\r/g, "\n")
+      .split(/\n{2,}/g)
+      .map((line) => line.trim())
+
+    console.log(tables)
+  }
+
   render() {
     let reportAsLines = this.state.data.split('\n');
+    let tables = this.splitByTable()
     let title = reportAsLines[3]
     let subtitle = reportAsLines[4];
     let content = this.getTableHeaders(reportAsLines)
@@ -93,7 +105,7 @@ export default class HomeScreen extends React.Component {
             <Title>{title}</Title>
           </Body>
         </Header>
-        <Content padder>
+        <Content>
           {content}
         </Content>
         <Footer>
