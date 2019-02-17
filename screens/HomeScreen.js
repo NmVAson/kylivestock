@@ -1,5 +1,5 @@
 import React from 'react';
-import { AsyncStorage } from 'react-native';
+import { AsyncStorage, FlatList, ScrollView } from 'react-native';
 import { WebBrowser, Font } from 'expo';
 import {
   Container,
@@ -13,7 +13,8 @@ import {
   Subtitle,
   Separator,
   Footer,
-  Left, Right
+  Left, Right,
+  Accordion
 } from 'native-base';
 import { Table, TableWrapper, Row, Rows, Col, Cols, Cell } from 'react-native-table-component';
 import PubSub from 'pubsub-js'
@@ -22,15 +23,54 @@ var DomParser = require('react-native-html-parser').DOMParser;
 export default class HomeScreen extends React.Component {
   state = {
     data: '',
-    filters: []
+    filters: [],
+    tables: [],
+    stickyHeaderIndices: []
   }
   static navigationOptions = {
     title: 'Weekly Livestock Summary'
   };
 
+  parseTables(text) {
+    let lines = text.split('\n');
+    let content = [];
+
+    for(i in lines) {
+      let line = lines[i]
+      if(line.includes('Wt Range')) {
+        let tableTitle = lines[i-1].trim()
+
+        content.push({name: line, header: true, title: tableTitle})
+      }
+
+      let lineShouldBeRendered = this.state.filters.length == 0 || new RegExp(this.state.filters.join("|")).test(line)
+      let parsedLine = line.trim().match(/\S+/g) || []
+      if(parsedLine.length == 5 && !line.includes('Report') && lineShouldBeRendered) {
+        content.push({name: line, header: false})
+      }
+    }
+    this.setState({tables: content})
+
+    this.calculateIndices()
+  }
+
+  calculateIndices() {
+    var arr = [];
+    this.state.tables.map(obj => {
+      if (obj.header) {
+        arr.push(this.state.tables.indexOf(obj));
+      }
+    });
+    arr.push(0);
+    this.setState({stickyHeaderIndices: arr});
+  }
+
   componentDidMount() {
     PubSub.subscribe('reportSelected', (msg, href) => this.fetchReport(href))
-    PubSub.subscribe('filterSelected', (msg, weightsToFilter) => this.setState({filters: weightsToFilter}))
+    PubSub.subscribe('filterSelected', (msg, weightsToFilter) => {
+      this.setState({filters: weightsToFilter})
+      this.parseTables(this.state.data)
+    })
 
     AsyncStorage
       .getItem("preferred-stockyard")
@@ -48,71 +88,53 @@ export default class HomeScreen extends React.Component {
       .then((response) => response.text())
       .then((rawReport) => {
         this.setState({data: rawReport});
+        this.parseTables(rawReport)
       })
       .catch((error) => {
         console.error(error)
       })
   }
 
-  getTableHeaders(lines) {
-    let content = [];
-    let firstTableRow = lines.findIndex((value) => value.includes('Wt Range')) - 1
-
-    let tableContent = lines.slice(firstTableRow)
-    for(i in tableContent) {
-      let line = tableContent[i]
-      let parsedLine = line.trim().match(/\S+/g) || []
-      if(line.includes('Wt Range')) {
-        let tableTitle = tableContent[i-1].trim()
-        content.push(<ListItem itemDivider><Text>{tableTitle}</Text></ListItem>)
-
-        let columns = parsedLine.map((col) => (<Text>{col}</Text>))
-        content.push(<ListItem itemHeader style={{justifyContent: 'space-evenly'}}>{columns}</ListItem>)
-      }
-
-      let lineShouldBeRendered = this.state.filters.length == 0 || new RegExp(this.state.filters.join("|")).test(line)
-      if(parsedLine.length == 5 && !line.includes('Report') && lineShouldBeRendered) {
-        let columns = parsedLine.map((col) => (<Text>{col}</Text>))
-        content.push(<ListItem style={{justifyContent: 'space-evenly'}}>{columns}</ListItem>);
-      }
+  renderItem = ({ item }) => {
+    if (item.header) {
+      return (
+        <ListItem itemDivider>
+            <Body>
+              <Text style={{ fontWeight: "bold" }}>{item.title}</Text>
+              <Text>{item.name}</Text>
+            </Body>
+        </ListItem>
+      );
+    } else if (!item.header) {
+      return (
+        <ListItem style={{ marginLeft: 0 }}>
+          <Body>
+            <Text>{item.name}</Text>
+          </Body>
+        </ListItem>
+      );
     }
-    return content
-  }
-
-  splitByTable() {
-    let tables = this.state.data
-      .replace(/\n\r/g, "\n")
-      .replace(/\r/g, "\n")
-      .split(/\n{2,}/g)
-      .map((line) => line.trim())
-
-    console.log(tables)
-  }
+  };
 
   render() {
     let reportAsLines = this.state.data.split('\n');
-    let tables = this.splitByTable()
     let title = reportAsLines[3]
     let subtitle = reportAsLines[4];
-    let content = this.getTableHeaders(reportAsLines)
 
     return (
       <Container>
         <Header>
           <Body>
             <Title>{title}</Title>
+            <Subtitle>{subtitle}</Subtitle>
           </Body>
         </Header>
-        <Content>
-          {content}
-        </Content>
-        <Footer>
-            <Body>
-              <Left/>
-              <Subtitle>{subtitle}</Subtitle>
-              <Right/>
-            </Body>
-        </Footer>
+        <FlatList
+          data={this.state.tables}
+          renderItem={this.renderItem}
+          keyExtractor={item => item.name}
+          stickyHeaderIndices={this.state.stickyHeaderIndices}
+        />
       </Container>
     );
   }
