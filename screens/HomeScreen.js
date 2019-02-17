@@ -11,6 +11,7 @@ import {
   Body,
   Title
 } from 'native-base';
+import PubSub from 'pubsub-js'
 
 var DomParser = require('react-native-html-parser').DOMParser;
 export default class HomeScreen extends React.Component {
@@ -21,29 +22,15 @@ export default class HomeScreen extends React.Component {
     header: null
   };
 
-  componentDidMount = () => {
-    fetch('https://cattlerange.com/cattle-auction-reports-results/kentucky-auctions/', {method: 'GET'})
-      .then((response) => response.text())
-      .then((html) => {
-        const parser = new DomParser()
-        const doc = parser.parseFromString(html, 'text/html')
+  componentDidMount() {
+    PubSub.subscribe('reportSelected', (msg, href) => this.fetchReport(href))
+  }
 
-        const kyLivestockLinks = Array
-          .from(doc.getElementsByTagName('a'))
-          .filter(element => element.getAttribute('rel') !== '')
-          .map((el,i) => {
-            return (<ListItem key={i}>
-              <CheckBox
-                title='Hi'
-                checked={this.state.checked}
-                iconType='material'
-              />
-              <Body>
-                <Text>{el.textContent}</Text>
-              </Body>
-            </ListItem>)
-          });
-        this.setState({data: kyLivestockLinks});
+  fetchReport(href) {
+    fetch(href, {method: 'GET'})
+      .then((response) => response.text())
+      .then((rawReport) => {
+        this.setState({data: rawReport});
       })
       .catch((error) => {
         console.error(error)
@@ -59,7 +46,7 @@ export default class HomeScreen extends React.Component {
           </Body>
         </Header>
         <Content>
-          <Text>Hello!</Text>
+          <Text>{this.state.data}</Text>
         </Content>
       </Container>
     );
