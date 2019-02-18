@@ -35,7 +35,7 @@ export default class HomeScreen extends React.Component {
     title: 'Weekly Livestock Summary'
   };
 
-  parseTables(data, filters = []) {
+  parseTables(data, filters = this.state.filters) {
     let lines = data.split('\n');
     let content = {};
 
