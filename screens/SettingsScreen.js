@@ -87,7 +87,7 @@ export default class SettingsScreen extends React.Component {
     return <Picker.Item key={i} value={s.value} label={s.label} />
   }
 
-  componentWillMount() {
+  fetchStockyards() {
     fetch('https://cattlerange.com/cattle-auction-reports-results/kentucky-auctions/', {method: 'GET'})
       .then((response) => response.text())
       .then((html) => {
@@ -120,6 +120,8 @@ export default class SettingsScreen extends React.Component {
         this.applyFilter(value)
       }
     }).done();
+
+    this.fetchStockyards()
   }
 
   componentWillUnmount() {
