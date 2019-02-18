@@ -1,19 +1,15 @@
 import React from 'react';
-import { AsyncStorage, ListView } from 'react-native';
+import { AsyncStorage, ListView, View} from 'react-native';
 import { WebBrowser, Font } from 'expo';
 import {
   Container,
   Header,
   Content,
-  List,
   ListItem,
   Text,
   Body,
   Title,
-  Subtitle,
-  Separator,
-  Footer,
-  Left, Right
+  Subtitle
 } from 'native-base';
 import { Table, TableWrapper, Row, Rows, Col, Cols, Cell } from 'react-native-table-component';
 import PubSub from 'pubsub-js'
@@ -43,7 +39,7 @@ export default class HomeScreen extends React.Component {
     for(i in lines) {
       let line = lines[i].trim()
       if(line.includes('Wt Range')) {
-        title = lines[i-1].trim()
+        title = lines[i-1].trim() + '\n' + line
 
         if (!content[title]) {
           content[title] = [];
@@ -104,20 +100,23 @@ export default class HomeScreen extends React.Component {
   }
 
   renderRow(item) {
-    return (<ListItem itemHeader>
-          <Body>
-            <Text style={{ fontWeight: "bold" }}>{item}</Text>
-          </Body>
-      </ListItem>)
+    let columns = item.match(/\S+/g).map((col) => (<Text style={{ marginLeft: 0 }}>{col}</Text>))
+
+    return (<ListItem style={{flex: 1, flexDirection: 'row', justifyContent: 'space-between'}}>{columns}</ListItem>)
   }
 
   renderSectionHeader(data, category) {
+    let parts = category.split('\n')
+    let title = parts[0]
+    let tableHeaders = parts[1].match(/\S+/g).map((col) => (<Text style={{ marginLeft: 0, fontSize: 15}}>{col}</Text>))
+
     return data.length > 0 
-    ? (<ListItem style={{ marginLeft: 0 }}>
-        <Body>
-          <Text>{category}</Text>
-        </Body>
-      </ListItem>) 
+    ? (<Content>
+       <ListItem itemHeader style={{ alignContent: "center" }}>
+          <Text style={{ fontWeight: "bold" }}>{title}</Text>
+        </ListItem>
+        <ListItem itemHeader style={{flex: 1, flexDirection: 'row', justifyContent: 'space-between'}}>{tableHeaders}</ListItem>
+      </Content>) 
     : null;
   }
 
