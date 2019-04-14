@@ -1,5 +1,5 @@
 import React from 'react';
-import { AsyncStorage, CheckBox, Picker } from 'react-native';
+import { AsyncStorage, CheckBox, Picker, TextInput, View } from 'react-native';
 import { Container, Header, Content, List, ListItem, Text, Separator, Body } from 'native-base';
 import { DOMParser } from 'react-native-html-parser'
 
@@ -8,80 +8,12 @@ export default class SettingsScreen extends React.Component {
   state = {
     data: [{value: '', label: ''}],
     selectedYard: '',
-    filters: [
-      {
-        isChecked: false, 
-        weightRange: '350-400'
-      },{
-        isChecked: false, 
-        weightRange: '400-450'
-      },{
-        isChecked: false, 
-        weightRange: '450-500'
-      },{
-        isChecked: false, 
-        weightRange: '500-550'
-      },{
-        isChecked: false, 
-        weightRange: '550-600'
-      },{
-        isChecked: false, 
-        weightRange: '600-650'
-      },{
-        isChecked: false, 
-        weightRange: '650-700'
-      },{
-        isChecked: false, 
-        weightRange: '750-800'
-      },{
-        isChecked: false, 
-        weightRange: '800-850'
-      },{
-        isChecked: false, 
-        weightRange: '850-900'
-      },{
-        isChecked: false, 
-        weightRange: '900-950'
-      },{
-        isChecked: false, 
-        weightRange: '950-1000'
-      }]
+    startWeight: 0,
+    endWeight: 0
   }
   static navigationOptions = {
     title: 'Settings',
   };
-
-  applyFilter(newFilters) {
-    this.setState({filters: newFilters})
-    AsyncStorage.setItem("weight-filters", newFilters);
-
-    let filteredWeights = newFilters.filter((f) => f.isChecked).map((f) => f.weightRange)
-    PubSub.publish('filterSelected', filteredWeights)
-  }
-
-  onPress(weight) {
-    let newFilters = this.state.filters
-    newFilters.forEach((filter, i) => {
-      if(filter.weightRange == weight) {
-        newFilters[i].isChecked = !newFilters[i].isChecked
-      }
-    })
-
-    this.applyFilter(newFilters)
-  }
-
-  toCheckBoxItem(filter) {
-      return (
-        <ListItem onPress={() => this.onPress(filter.weightRange)}>
-          <CheckBox 
-            value={filter.isChecked}
-            onChange={() => this.onPress(filter.weightRange)}/>
-          <Body>
-            <Text>{filter.weightRange}</Text>
-          </Body>
-        </ListItem>
-      )
-  }
 
   toPickerItem(s, i) {
     return <Picker.Item key={i} value={s.value} label={s.label} />
@@ -115,9 +47,15 @@ export default class SettingsScreen extends React.Component {
       this.setState({selectedYard: value});
     }).done();
 
-    AsyncStorage.getItem("weight-filters").then((value) => {
+    AsyncStorage.getItem("weight-start").then((value) => {
       if(value) {
-        this.applyFilter(value)
+        this.state.startWeight = value;
+      }
+    }).done();
+
+    AsyncStorage.getItem("weight-end").then((value) => {
+      if(value) {
+        this.state.endWeight = value;
       }
     }).done();
 
@@ -125,12 +63,12 @@ export default class SettingsScreen extends React.Component {
   }
 
   componentWillUnmount() {
-    AsyncStorage.setItem("weight-filters", this.state.filters);
+    AsyncStorage.setItem("weight-start", this.state.startWeight);
+    AsyncStorage.setItem("weight-end", this.state.endWeight);
     AsyncStorage.setItem("preferred-stockyard", this.state.selectedYard);
   }
 
   render() {
-    let filters = this.state.filters.map(this.toCheckBoxItem.bind(this));
     let items = this.state.data.map(this.toPickerItem);
 
     return (
@@ -157,9 +95,31 @@ export default class SettingsScreen extends React.Component {
             {items}
           </Picker>
           <Separator bordered>
-            <Text>WEIGHT FILTERS</Text>
+            <Text>WEIGHT FILTER</Text>
           </Separator>
-          {filters}
+          <View style={{flex: 1, flexDirection: 'row'}}>
+            <TextInput 
+              style={{height: 40, borderColor: 'lightgray', borderWidth: 1, width: 60, padding: 5}}
+              keyboardType='numeric'
+              onChangeText={(text) => {
+                this.setState({startWeight: text});
+                PubSub.publish('filterSelected', [`${this.state.startWeight}-${this.state.endWeight}`]);
+              }}
+              value={this.state.startWeight}
+              maxLength={4} 
+            />
+            <Text style={{padding: 5}}> to </Text>
+            <TextInput 
+              style={{height: 40, borderColor: 'lightgray', borderWidth: 1, width: 60, padding: 5}}
+              keyboardType='numeric'
+              onChangeText={(text) => {
+                this.setState({endWeight: text});
+                PubSub.publish('filterSelected', [`${this.state.startWeight}-${this.state.endWeight}`]);
+              }}
+              value={this.state.endWeight}
+              maxLength={4} 
+            />
+          </View>
         </Content>
       </Container>
     );
