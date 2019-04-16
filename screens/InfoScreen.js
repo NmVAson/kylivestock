@@ -1,21 +1,6 @@
 import React from 'react';
 import { AsyncStorage } from 'react-native';
-import { WebBrowser, Font } from 'expo';
-import {
-  Container,
-  Header,
-  Content,
-  List,
-  ListItem,
-  Text,
-  Body,
-  Title,
-  Subtitle,
-  Separator,
-  Footer,
-  Left, Right,
-  Button
-} from 'native-base';
+import { Container, Content, Text } from 'native-base';
 import PubSub from 'pubsub-js'
 
 var DomParser = require('react-native-html-parser').DOMParser;
@@ -24,9 +9,10 @@ export default class InfoScreen extends React.Component {
     data: '',
     href: ''
   }
+
   static navigationOptions = {
-    title: 'Report Source Info'
-  };
+    title: 'Source'
+  }
 
   componentDidMount() {
     PubSub.subscribe('reportSelected', (msg, href) => this.fetchReport(href))

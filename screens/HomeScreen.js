@@ -1,18 +1,17 @@
 import React from 'react';
-import { AsyncStorage, ListView, View} from 'react-native';
-import { WebBrowser, Font } from 'expo';
+import { AsyncStorage, ListView } from 'react-native';
 import {
   Container,
-  Header,
   Content,
   ListItem,
   Text,
-  Body,
   Title,
-  Subtitle
+  Subtitle,
+  Button
 } from 'native-base';
-import { Table, TableWrapper, Row, Rows, Col, Cols, Cell } from 'react-native-table-component';
-import PubSub from 'pubsub-js'
+import { Table, Row, Col } from 'react-native-table-component';
+import PubSub from 'pubsub-js';
+import SettingsModal from '../components/SettingsModal';
 
 var DomParser = require('react-native-html-parser').DOMParser;
 export default class HomeScreen extends React.Component {
@@ -28,8 +27,8 @@ export default class HomeScreen extends React.Component {
   }
 
   static navigationOptions = {
-    title: 'Weekly Livestock Summary'
-  };
+    title: 'Report'
+  }
 
   parseTables(data, filters = this.state.filters) {
     let lines = data.split('\n');
@@ -123,12 +122,6 @@ export default class HomeScreen extends React.Component {
   render() {
     return (
       <Container>
-        <Header>
-          <Body>
-            <Title>{this.state.title}</Title>
-            <Subtitle>{this.state.subtitle}</Subtitle>
-          </Body>
-        </Header>
         <ListView
           enableEmptySections
           dataSource={this.state.dataSource}

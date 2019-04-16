@@ -1,6 +1,10 @@
 import React from 'react';
 import { AsyncStorage, CheckBox, Picker, TextInput, View } from 'react-native';
-import { Container, Header, Content, List, ListItem, Text, Separator, Body } from 'native-base';
+import { Container, Header, Content, List, ListItem, Text, Separator, Body,
+  Button,
+  Icon,
+  Right,
+  Title } from 'native-base';
 import { DOMParser } from 'react-native-html-parser'
 
 
@@ -11,9 +15,6 @@ export default class SettingsScreen extends React.Component {
     startWeight: 0,
     endWeight: 0
   }
-  static navigationOptions = {
-    title: 'Settings',
-  };
 
   toPickerItem(s, i) {
     return <Picker.Item key={i} value={s.value} label={s.label} />
@@ -70,9 +71,22 @@ export default class SettingsScreen extends React.Component {
 
   render() {
     let items = this.state.data.map(this.toPickerItem);
+    const {navigate} = this.props.navigation;
 
     return (
       <Container>
+        <Header>
+          <Body>
+            <Title>Settings</Title>
+          </Body>
+          <Right>
+            <Button 
+              transparent
+              onPress={ () => navigate('Home') }>
+              <Icon name='close' />
+            </Button>
+          </Right>
+        </Header>
         <Content>
           <Separator bordered>
             <Text>STATE</Text>
@@ -80,20 +94,6 @@ export default class SettingsScreen extends React.Component {
           <ListItem>
             <Text>Kentucky</Text>
           </ListItem>
-          <Separator bordered>
-            <Text>STOCKYARD</Text>
-          </Separator>
-          <Picker
-            mode="dropdown"
-            selectedValue={this.state.selectedYard}
-            onValueChange={(itemValue) => {
-              this.setState({selectedYard: itemValue})
-              PubSub.publish('reportSelected', itemValue)
-              AsyncStorage.setItem("preferred-stockyard", itemValue);
-            }}
-            >
-            {items}
-          </Picker>
           <Separator bordered>
             <Text>WEIGHT FILTER</Text>
           </Separator>
@@ -120,6 +120,20 @@ export default class SettingsScreen extends React.Component {
               maxLength={4} 
             />
           </View>
+          <Separator bordered>
+            <Text>STOCKYARD</Text>
+          </Separator>
+          <Picker
+            mode="dropdown"
+            selectedValue={this.state.selectedYard}
+            onValueChange={(itemValue) => {
+              this.setState({selectedYard: itemValue})
+              PubSub.publish('reportSelected', itemValue)
+              AsyncStorage.setItem("preferred-stockyard", itemValue);
+            }}
+            >
+            {items}
+          </Picker>
         </Content>
       </Container>
     );
