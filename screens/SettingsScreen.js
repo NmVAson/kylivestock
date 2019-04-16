@@ -5,7 +5,8 @@ import { Container, Header, Content, List, ListItem, Text, Separator, Body,
   Icon,
   Right,
   Title } from 'native-base';
-import { DOMParser } from 'react-native-html-parser'
+import { DOMParser } from 'react-native-html-parser';
+import SaveButton from '../components/SaveButton';
 
 
 export default class SettingsScreen extends React.Component {
@@ -14,6 +15,10 @@ export default class SettingsScreen extends React.Component {
     selectedYard: '',
     startWeight: 0,
     endWeight: 0
+  }
+
+  static navigationOptions = {
+    title: 'Settings'
   }
 
   toPickerItem(s, i) {
@@ -71,22 +76,9 @@ export default class SettingsScreen extends React.Component {
 
   render() {
     let items = this.state.data.map(this.toPickerItem);
-    const {navigate} = this.props.navigation;
 
     return (
       <Container>
-        <Header>
-          <Body>
-            <Title>Settings</Title>
-          </Body>
-          <Right>
-            <Button 
-              transparent
-              onPress={ () => navigate('Home') }>
-              <Icon name='close' />
-            </Button>
-          </Right>
-        </Header>
         <Content>
           <Separator bordered>
             <Text>STATE</Text>
@@ -135,6 +127,7 @@ export default class SettingsScreen extends React.Component {
             {items}
           </Picker>
         </Content>
+        <SaveButton navigation={this.props.navigation}/>
       </Container>
     );
   }

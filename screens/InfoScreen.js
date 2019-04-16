@@ -45,7 +45,7 @@ export default class InfoScreen extends React.Component {
       <Container>
         <Content>
           <Text>{this.state.data}</Text>
-        </Content>
+          </Content>
       </Container>
     );
   }

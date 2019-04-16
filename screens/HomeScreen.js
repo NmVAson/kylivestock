@@ -11,7 +11,7 @@ import {
 } from 'native-base';
 import { Table, Row, Col } from 'react-native-table-component';
 import PubSub from 'pubsub-js';
-import SettingsModal from '../components/SettingsModal';
+import SettingsButton from '../components/SettingsButton';
 
 var DomParser = require('react-native-html-parser').DOMParser;
 export default class HomeScreen extends React.Component {
@@ -128,6 +128,7 @@ export default class HomeScreen extends React.Component {
           renderRow={this.renderRow}
           renderSectionHeader={this.renderSectionHeader}
         />
+        <SettingsButton navigation={this.props.navigation}/>
       </Container>
     );
   }
