@@ -1,10 +1,7 @@
 import React from 'react';
-import { AsyncStorage, CheckBox, Picker, TextInput, View } from 'react-native';
-import { Container, Header, Content, List, ListItem, Text, Separator, Body,
-  Button,
-  Icon,
-  Right,
-  Title } from 'native-base';
+import { AsyncStorage, Picker, TextInput, View, ScrollView, Dimensions } from 'react-native';
+import { Container, Content, ListItem, Text, Separator, Title } from 'native-base';
+import { Header } from 'react-native-elements';
 import { DOMParser } from 'react-native-html-parser';
 import SaveButton from '../components/SaveButton';
 
@@ -15,10 +12,6 @@ export default class SettingsScreen extends React.Component {
     selectedYard: '',
     startWeight: 0,
     endWeight: 0
-  }
-
-  static navigationOptions = {
-    title: 'Settings'
   }
 
   toPickerItem(s, i) {
@@ -76,10 +69,17 @@ export default class SettingsScreen extends React.Component {
 
   render() {
     let items = this.state.data.map(this.toPickerItem);
+    let width = Dimensions.get('window').width;
+
+    console.log(width)
 
     return (
-      <Container>
-        <Content>
+      <Container style={{flex: 1}}>
+        <Header 
+          leftContainerStyle={style.headerTitleContainer}
+          leftComponent={<Title style={style.headerTitle}>Settings</Title>}
+          containerStyle={styles.header}/>
+        <ScrollView>
           <Separator bordered>
             <Text>STATE</Text>
           </Separator>
@@ -126,9 +126,26 @@ export default class SettingsScreen extends React.Component {
             >
             {items}
           </Picker>
-        </Content>
+        </ScrollView>
         <SaveButton navigation={this.props.navigation}/>
       </Container>
     );
   }
 }
+
+const styles = StyleSheet.create({
+  header: {
+    backgroundColor: '#fff'
+  },
+
+  headerTitleContainer: {
+    justifyContent:"flex-start"
+  },
+ 
+  headerTitle: {
+    color: "black", 
+    fontWeight: "bold", 
+    paddingLeft: 5, 
+    width: width
+  }
+});
