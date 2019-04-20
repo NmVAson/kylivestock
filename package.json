@@ -5,15 +5,13 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "eject": "expo eject",
-    "test": "node ./node_modules/jest/bin/jest.js --watchAll"
-  },
-  "jest": {
-    "preset": "jest-expo"
+    "test": "jasmine report/test/Parser.spec.js"
   },
   "dependencies": {
     "@expo/samples": "2.1.1",
     "@expo/vector-icons": "^9.0.0",
     "expo": "^32.0.0",
+    "file-system": "^2.2.2",
     "native-base": "^2.11.0",
     "pubsub-js": "^1.7.0",
     "react": "16.5.0",
@@ -23,11 +21,11 @@
     "react-native-radio-buttons-group": "^1.0.7",
     "react-native-simple-radio-button": "^2.7.3",
     "react-native-table-component": "^1.2.0",
-    "react-navigation": "^3.0.9"
+    "react-navigation": "^3.0.9",
+    "sprache": "^1.0.0-alpha.3"
   },
   "devDependencies": {
-    "babel-preset-expo": "^5.0.0",
-    "jest-expo": "^32.0.0"
+    "jasmine-es6": "^0.4.3"
   },
   "private": true
 }
