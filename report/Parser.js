@@ -36,13 +36,13 @@ export default class StockyardReportParser {
 
         this.PriceColumn = this.PriceRange.or(this.AvgPrice.select(p => new Range(p, p)));
 
+        this.EOL = Parse.char('\n').atLeastOnce();
+        
         this.Notes = Parse.query(function*() {
-            const note = yield Parse.letter.or(Parse.whiteSpace).atLeastOnce().text();
+            const note = yield Parse.letterOrDigit.or(Parse.whiteSpace).or(Parse.char('-')).many().text();
         
             return Parse.return(note);
         }.bind(this));
-        
-        this.EOL = Parse.char('\n').atLeastOnce();
 
         this.CategoryData = Parse.query(function*() {
             const head = yield this.Head.token();
@@ -63,8 +63,10 @@ export default class StockyardReportParser {
             ));
         }.bind(this));
 
+        this.Whitespace = Parse.whiteSpace.many();
+
         this.CategoryLabel = Parse.query(function*() {
-            const leadingWhitespace = yield Parse.whiteSpace.many();
+            const leadingWhitespace = yield this.Whitespace.optional();
             const label = yield Parse.anyChar.except(Parse.char('\n')).atLeastOnce().text();
             const end = yield this.EOL;
 
@@ -76,15 +78,46 @@ export default class StockyardReportParser {
             const columnHeader = yield Parse.string("Head   Wt Range   Avg Wt    Price Range   Avg Price").token();
             const newLine = yield this.EOL;
             const data = yield this.CategoryData.atLeastOnce();
+            const notes = yield this.Paragraph.optional();
+            const leadingWhitespace = yield this.Whitespace.optional();
             const end = yield this.EOL.optional();
 
             return Parse.return(new Category(label, data));
         }.bind(this));
 
+        this.Subcategory = Parse.query(function*() {
+            const label = yield this.CategoryLabel;
+            const columnHeader = yield Parse.string("Head   Wt Range   Avg Wt    Price Range   Avg Price").optional().token();
+            const newLine = yield this.EOL.optional();
+            const data = yield this.CategoryData.atLeastOnce();
+            const end = yield this.EOL.optional();
+
+            return Parse.return(new Category(label, data));
+        }.bind(this));
+
+        this.CategoryWithSubsections = Parse.query(function*() {
+            const label = yield Parse.letter.or(Parse.char(' ')).except(Parse.string('  ')).atLeastOnce().text();
+            const subCategories = yield this.Subcategory.atLeastOnce();
+
+            return Parse.return(new Category(label, subCategories));
+        }.bind(this));
+
+        this.NonBlankLine = Parse.query(function*() {
+            const text = yield Parse.anyChar.except(Parse.char('\n')).many().text();
+            const end = yield this.EOL;
+
+            return Parse.return(text.trim());
+        }.bind(this));
+
+        this.Paragraph = Parse.query(function*() {
+            const leadingWhitespace = yield this.Whitespace.optional();
+            const text = yield this.NonBlankLine.atLeastOnce();
+
+            return Parse.return(text.join('\n'));
+        }.bind(this));
+
         this.Report = Parse.query(function*() {
-            const header = yield Parse.anyChar.many();
-            const emptyLine = yield Parse.whiteSpace.many();
-            const content = yield this.Category.many();
+            const content = yield this.Category.or(this.CategoryWithSubsections).many();
             const footer = yield Parse.anyChar.many();
             
             return Parse.return(content);

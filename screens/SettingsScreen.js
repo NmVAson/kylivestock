@@ -1,5 +1,5 @@
 import React from 'react';
-import { AsyncStorage, Picker, TextInput, View, ScrollView, Dimensions } from 'react-native';
+import { AsyncStorage, Picker, TextInput, View, ScrollView, Dimensions, StyleSheet } from 'react-native';
 import { Container, Content, ListItem, Text, Separator, Title } from 'native-base';
 import { Header } from 'react-native-elements';
 import { DOMParser } from 'react-native-html-parser';
@@ -69,15 +69,12 @@ export default class SettingsScreen extends React.Component {
 
   render() {
     let items = this.state.data.map(this.toPickerItem);
-    let width = Dimensions.get('window').width;
-
-    console.log(width)
 
     return (
       <Container style={{flex: 1}}>
         <Header 
-          leftContainerStyle={style.headerTitleContainer}
-          leftComponent={<Title style={style.headerTitle}>Settings</Title>}
+          leftContainerStyle={styles.headerTitleContainer}
+          leftComponent={<Title style={styles.headerTitle}>Settings</Title>}
           containerStyle={styles.header}/>
         <ScrollView>
           <Separator bordered>
@@ -133,6 +130,7 @@ export default class SettingsScreen extends React.Component {
   }
 }
 
+let width = Dimensions.get('window').width;
 const styles = StyleSheet.create({
   header: {
     backgroundColor: '#fff'

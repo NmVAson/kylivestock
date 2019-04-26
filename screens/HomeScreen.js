@@ -12,67 +12,36 @@ import {
 import { Table, Row, Col } from 'react-native-table-component';
 import PubSub from 'pubsub-js';
 import SettingsButton from '../components/SettingsButton';
+import StockyardReportParser from '../report/Parser';
 
 var DomParser = require('react-native-html-parser').DOMParser;
 export default class HomeScreen extends React.Component {
   state = {
       rawData: '',
-      dataSource: new ListView.DataSource({
-        rowHasChanged: (r1, r2) => r1 !== r2,
-        sectionHeaderHasChanged: (s1, s2) => s1 !== s2
-      }),
-      title: '',
-      subtitle: '',
-      filters: []
+      report: [],
+      minWeight: Number.NaN,
+      maxWeight: Number.NaN
   }
 
   static navigationOptions = {
     title: 'Report'
   }
 
-  parseTables(data, filters = this.state.filters) {
-    let lines = data.split('\n');
-    let content = {};
-
-    let title = ''
-    for(i in lines) {
-      let line = lines[i].trim()
-      if(line.includes('Wt Range')) {
-        title = lines[i-1].trim() + '\n' + line
-
-        if (!content[title]) {
-          content[title] = [];
-        }
-      } else {
-        let lineShouldBeRendered = filters.length == 0 || new RegExp(filters.join("|")).test(line)
-        let parsedLine = line.match(/\S+/g) || []
-        if(parsedLine.length == 5 && !line.includes('Report') && lineShouldBeRendered && content[title]) {
-          content[title].push(line);
-        }
-      }
-    }
-
-    return content;
-  }
-
   componentDidMount() {
-    PubSub.subscribe('reportSelected', (msg, href) => this.fetchReport(href))
-    PubSub.subscribe('filterSelected', (msg, weightsToFilter) => {
-      this.setState({filters: weightsToFilter})
+    AsyncStorage.getItem("weight-start")
+      .then((value) => {
+        this.setState({minWeight: value})
+      }).done();
 
-      let content = this.parseTables(this.state.rawData, weightsToFilter)
-      this.setState({
-        dataSource: this.state.dataSource.cloneWithRowsAndSections(content)
-      })
-    })
+    AsyncStorage.getItem("weight-end")
+      .then((value) => {
+        this.setState({maxWeight: value})
+      }).done();
 
     AsyncStorage
       .getItem("preferred-stockyard")
       .then((value) => {
-        if(value) {
-          this.fetchReport(value)
-        } else {
-        }
+        if(value) this.fetchReport(value);
       })
       .done();
   }
@@ -81,53 +50,33 @@ export default class HomeScreen extends React.Component {
     fetch(href, {method: 'GET'})
       .then((response) => response.text())
       .then((rawReport) => {
-        let content = this.parseTables(rawReport)
-        let reportAsLines = rawReport.split('\n');
-        let title = reportAsLines[3]
-        let subtitle = reportAsLines[4];
+        var reportLines = rawReport.split('\n');
+        var firstCategoryPosition = reportLines.findIndex((line) => line.includes('Wt Range')) - 1;
+        var reportWithoutIntro = reportLines.slice(firstCategoryPosition).join('\n');
+        console.log(`${reportWithoutIntro}`);
+        let report = new StockyardReportParser().Report.parse(reportWithoutIntro);
+        console.log(report);
 
-        this.setState({
-          dataSource: this.state.dataSource.cloneWithRowsAndSections(content),
-          title: title,
-          subtitle: subtitle,
-          rawData: rawReport
-        })
+        let filteredReport = report.map(category => {
+          category.filter(this.state.minWeight, this.state.maxWeight);
+        });
+
+        console.log(filteredReport);
+
+        this.setState({report: filteredReport});
       })
-      .catch((error) => {
-        console.error(error)
-      })
+      .catch((error) => console.error(error))
   }
 
-  renderRow(item) {
-    let columns = item.match(/\S+/g).map((col) => (<Text style={{ marginLeft: 0 }}>{col}</Text>))
-
-    return (<ListItem style={{flex: 1, flexDirection: 'row', justifyContent: 'space-between'}}>{columns}</ListItem>)
-  }
-
-  renderSectionHeader(data, category) {
-    let parts = category.split('\n')
-    let title = parts[0]
-    let tableHeaders = parts[1].match(/\S+/g).map((col) => (<Text style={{ marginLeft: 0, fontSize: 15}}>{col}</Text>))
-
-    return data.length > 0 
-    ? (<Content>
-       <ListItem itemHeader style={{ alignContent: "center" }}>
-          <Text style={{ fontWeight: "bold" }}>{title}</Text>
-        </ListItem>
-        <ListItem itemHeader style={{flex: 1, flexDirection: 'row', justifyContent: 'space-between'}}>{tableHeaders}</ListItem>
-      </Content>) 
-    : null;
-  }
 
   render() {
     return (
       <Container>
-        <ListView
-          enableEmptySections
-          dataSource={this.state.dataSource}
-          renderRow={this.renderRow}
-          renderSectionHeader={this.renderSectionHeader}
-        />
+        {this.state.report.map((category) => {
+          return (
+            <Text>{category.Label}</Text>
+          );
+        })}
         <SettingsButton navigation={this.props.navigation}/>
       </Container>
     );
