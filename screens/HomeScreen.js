@@ -46,24 +46,30 @@ export default class HomeScreen extends React.Component {
       .done();
   }
 
-  fetchReport(href) {
-    fetch(href, {method: 'GET'})
-      .then((response) => response.text())
-      .then((rawReport) => {
-        var reportLines = rawReport.split('\n');
-        var firstCategoryPosition = reportLines.findIndex((line) => line.includes('Wt Range')) - 1;
-        var reportWithoutIntro = reportLines.slice(firstCategoryPosition).join('\n');
-        console.log(`${reportWithoutIntro}`);
-        let report = new StockyardReportParser().Report.parse(reportWithoutIntro);
-        console.log(report);
+  fetchReport(reportId) {    
+    let fetchOptions = {
+      method: 'GET',
+      headers: {
+          'Authorization': 'Basic NHgvTWxUS243QTdRemc5dEpHTmM0ZTBVSVRRTzM3MmU6'
+      }
+    }
+    let href = `https://marsapi.ams.usda.gov/services/v1.1/reports/${reportId}?sort=-published_date`
+    let today = new Date()
+    let aWeekAgo = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 7)
 
-        let filteredReport = report.map(category => {
-          category.filter(this.state.minWeight, this.state.maxWeight);
-        });
-
-        console.log(filteredReport);
-
-        this.setState({report: filteredReport});
+    fetch(href, fetchOptions)
+      .then((response) => {
+        let body = response._bodyText
+        let jsonResponse = JSON.parse(body)
+        
+        return jsonResponse.results
+      })
+      .then(reportLines => {
+        let maxDate = reportLines[0].published_date
+        return reportLines.filter(reportLine => reportLine.published_date == maxDate)
+      })
+      .then((linesFromLatestReport) => {
+        this.setState({report: linesFromLatestReport});
       })
       .catch((error) => console.error(error))
   }
@@ -74,7 +80,7 @@ export default class HomeScreen extends React.Component {
       <Container>
         {this.state.report.map((category) => {
           return (
-            <Text>{category.Label}</Text>
+            <Text>{category.class}</Text>
           );
         })}
         <SettingsButton navigation={this.props.navigation}/>

@@ -19,21 +19,29 @@ export default class SettingsScreen extends React.Component {
   }
 
   fetchStockyards() {
-    fetch('https://cattlerange.com/cattle-auction-reports-results/kentucky-auctions/', {method: 'GET'})
-      .then((response) => response.text())
-      .then((html) => {
-        const parser = new DOMParser()
-        const doc = parser.parseFromString(html, 'text/html')
+    let fetchOptions = {
+      method: 'GET',
+      headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Basic NHgvTWxUS243QTdRemc5dEpHTmM0ZTBVSVRRTzM3MmU6'
+      }
+    }
 
-        return Array
-          .from(doc.getElementsByTagName('a'))
-          .filter(element => element.getAttribute('rel') !== '')
-          .map((el, i) => {
-            return {
-                label: el.textContent,
-                value: el.getAttribute('href')
-              }
-          });
+    fetch('https://marsapi.ams.usda.gov/services/v1/marketTypes/Auction Livestock', fetchOptions)
+      .then((response) => {
+        let body = response._bodyText
+        let jsonResponse = JSON.parse(body)
+        
+        return jsonResponse.results
+      })
+      .then((reports) => reports.filter((report) => report.offices.includes("Lexington")))
+      .then((reports) => {
+        return reports.map((el, i) => {
+          return {
+              label: el.report_title,
+              value: el.slug_id
+            }
+        });
       })
       .then((results) => this.setState({data: results}))
       .catch((error) => {
