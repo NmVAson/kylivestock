@@ -44,7 +44,7 @@ export default class SettingsScreen extends React.Component {
         return reports.map((el, i) => {
           return {
               label: el.report_title,
-              value: el.slug_id
+              value: el.slug_name
             }
         });
       })
