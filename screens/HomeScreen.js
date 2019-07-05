@@ -1,5 +1,5 @@
 import React from 'react';
-import { AsyncStorage, ListView } from 'react-native';
+import { AsyncStorage, ListView, ScrollView } from 'react-native';
 import {
   Container,
   Content,
@@ -9,10 +9,8 @@ import {
   Subtitle,
   Button
 } from 'native-base';
-import { Table, Row, Col } from 'react-native-table-component';
+import { Col, Row, Grid } from "react-native-easy-grid";
 import PubSub from 'pubsub-js';
-import SettingsButton from '../components/SettingsButton';
-import StockyardReportParser from '../report/Parser';
 
 var DomParser = require('react-native-html-parser').DOMParser;
 export default class HomeScreen extends React.Component {
@@ -74,16 +72,23 @@ export default class HomeScreen extends React.Component {
       .catch((error) => console.error(error))
   }
 
-
   render() {
     return (
       <Container>
+        <ScrollView>
         {this.state.report.map((category) => {
           return (
-            <Text>{category.class}</Text>
+            <Grid>
+              <Row><Col><Text>{category.class} {category.frame}</Text></Col></Row>
+              <Row>
+                <Col><Text>{category.market_location_name}</Text></Col>
+                <Col><Text>{category.avg_price}</Text></Col>
+                <Col><Text>{category.avg_weight}</Text></Col>
+              </Row> 
+            </Grid>
           );
         })}
-        <SettingsButton navigation={this.props.navigation}/>
+        </ScrollView>
       </Container>
     );
   }

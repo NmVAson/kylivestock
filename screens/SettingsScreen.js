@@ -7,6 +7,11 @@ import SaveButton from '../components/SaveButton';
 
 
 export default class SettingsScreen extends React.Component {
+
+  static navigationOptions = {
+    title: 'Settings'
+  }
+
   state = {
     data: [{value: '', label: ''}],
     selectedYard: '',
@@ -80,10 +85,6 @@ export default class SettingsScreen extends React.Component {
 
     return (
       <Container style={{flex: 1}}>
-        <Header 
-          leftContainerStyle={styles.headerTitleContainer}
-          leftComponent={<Title style={styles.headerTitle}>Settings</Title>}
-          containerStyle={styles.header}/>
         <ScrollView>
           <Separator bordered>
             <Text>STATE</Text>
@@ -132,26 +133,7 @@ export default class SettingsScreen extends React.Component {
             {items}
           </Picker>
         </ScrollView>
-        <SaveButton navigation={this.props.navigation}/>
       </Container>
     );
   }
 }
-
-let width = Dimensions.get('window').width;
-const styles = StyleSheet.create({
-  header: {
-    backgroundColor: '#fff'
-  },
-
-  headerTitleContainer: {
-    justifyContent:"flex-start"
-  },
- 
-  headerTitle: {
-    color: "black", 
-    fontWeight: "bold", 
-    paddingLeft: 5, 
-    width: width
-  }
-});
