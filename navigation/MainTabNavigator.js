@@ -30,14 +30,14 @@ const InfoStack = createStackNavigator({
 });
 
 InfoStack.navigationOptions = {
-  tabBarLabel: 'Info',
+  tabBarLabel: 'PDF',
   tabBarIcon: ({ focused }) => (
     <TabBarIcon
       focused={focused}
       name={
         Platform.OS === 'ios'
-          ? `ios-information-circle-outline`
-          : 'md-information-circle-outline'
+          ? `ios-download`
+          : 'md-download'
       }
     />
   ),
