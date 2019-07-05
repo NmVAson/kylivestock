@@ -7,7 +7,8 @@ import {
   Text,
   Title,
   Subtitle,
-  Button
+  Button,
+  H1
 } from 'native-base';
 import { Col, Row, Grid } from "react-native-easy-grid";
 import PubSub from 'pubsub-js';
@@ -44,6 +45,7 @@ export default class HomeScreen extends React.Component {
       .done();
   }
 
+
   fetchReport(reportId) {    
     let fetchOptions = {
       method: 'GET',
@@ -67,7 +69,38 @@ export default class HomeScreen extends React.Component {
         return reportLines.filter(reportLine => reportLine.published_date == maxDate)
       })
       .then((linesFromLatestReport) => {
-        this.setState({report: linesFromLatestReport});
+        var categoryMap = new Map()
+
+        for (line of linesFromLatestReport) {
+          var category = categoryMap.get(`${line.class} ${line.frame}`)
+          if (!category) {
+            categoryMap.set(`${line.class} ${line.frame}`, [line]);
+          } else {
+            category.push(line);
+          }
+        }
+        return categoryMap
+      })
+      .then(categories => {
+        var content = []
+
+        categories.forEach((rows, title) => { 
+          var tableData = rows.map(row => {
+            return (
+              <Row>
+                <Col><Text>{row.market_location_name}</Text></Col>
+                <Col><Text>{row.avg_price}</Text></Col>
+                <Col><Text>{row.avg_weight}</Text></Col>
+              </Row>
+            )
+          })
+
+          content.push(<Grid><Row><Col><H1>{title}</H1></Col></Row>{tableData}</Grid>)
+        })
+
+        console.log(content)
+
+        this.setState({report: content});
       })
       .catch((error) => console.error(error))
   }
@@ -76,18 +109,7 @@ export default class HomeScreen extends React.Component {
     return (
       <Container>
         <ScrollView>
-        {this.state.report.map((category) => {
-          return (
-            <Grid>
-              <Row><Col><Text>{category.class} {category.frame}</Text></Col></Row>
-              <Row>
-                <Col><Text>{category.market_location_name}</Text></Col>
-                <Col><Text>{category.avg_price}</Text></Col>
-                <Col><Text>{category.avg_weight}</Text></Col>
-              </Row> 
-            </Grid>
-          );
-        })}
+        {this.state.report}
         </ScrollView>
       </Container>
     );
