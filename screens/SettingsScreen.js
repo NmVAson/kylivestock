@@ -2,7 +2,6 @@ import React from 'react';
 import { AsyncStorage, Picker, TextInput, View, ScrollView, Dimensions, StyleSheet } from 'react-native';
 import { Container, Content, ListItem, Text, Separator, Title } from 'native-base';
 import { Header } from 'react-native-elements';
-import { DOMParser } from 'react-native-html-parser';
 import SaveButton from '../components/SaveButton';
 
 

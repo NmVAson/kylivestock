@@ -13,7 +13,6 @@ import {
 import { Col, Row, Grid } from "react-native-easy-grid";
 import PubSub from 'pubsub-js';
 
-var DomParser = require('react-native-html-parser').DOMParser;
 export default class HomeScreen extends React.Component {
   state = {
       rawData: '',
