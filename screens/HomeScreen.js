@@ -98,8 +98,6 @@ export default class HomeScreen extends React.Component {
           content.push(<Grid><Row><Col><H1>{title}</H1></Col></Row>{tableData}</Grid>)
         })
 
-        console.log(content)
-
         this.setState({report: content});
       })
       .catch((error) => console.error(error))
